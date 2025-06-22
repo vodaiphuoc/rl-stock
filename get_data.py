@@ -4,7 +4,7 @@ from typing import Literal, List, Dict, Union
 from datetime import datetime
 import re
 from collections import defaultdict
-from vnstock3 import Vnstock
+from vnstock import Vnstock
 import os
 import pandas as pd
 import numpy as np
