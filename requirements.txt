@@ -1,2 +1,9 @@
 pandas
 vnstock
+torch
+gym
+stable-baselines3
+cvxopt
+scipy
+cvxpy
+TA-Lib

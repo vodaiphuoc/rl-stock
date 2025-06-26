@@ -1,13 +1,4 @@
-#！/usr/bin/python
-# -*- coding: utf-8 -*-#
-
 '''
----------------------------------
- Name:         config.py
- Description:  configuration file 
- Author:       MASA
-
-Referenced Repository in Github
 Imple. of compared methods: https://github.com/ZhengyaoJiang/PGPortfolio/blob/48cc5a4af5edefd298e7801b95b0d4696f5175dd/pgportfolio/tdagent/tdagent.py#L7
 RL-based agent (TD3 imple.): Baselines3 (https://stable-baselines3.readthedocs.io/en/master/modules/td3.html)
 Trading environment: FinRL (https://github.com/AI4Finance-Foundation/FinRL)
@@ -21,7 +12,7 @@ import os
 import pandas as pd
 import time
 import datetime
-from RL_controller.TD3_controller import TD3PolicyOriginal
+from agent.TD3_controller import TD3PolicyOriginal
 
 class Config():
     def __init__(self, seed_num=2022, current_date=None):
@@ -77,7 +68,7 @@ class Config():
 
         self.period_mode = 1 
         self.tmp_name = 'Cls3_{}_{}_K{}_M{}_{}_{}'.format(self.mode, self.mktobs_algo, self.topK, self.period_mode, self.market_name, self.trained_best_model_type)
-        self.dataDir = './data'
+        self.dataDir = 'data/prices/all_prices.xlsx'
         self.pricePredModel = 'MA'
         self.cov_lookback = 5 
         self.norm_method = 'sum'

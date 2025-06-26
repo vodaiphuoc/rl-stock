@@ -1,14 +1,3 @@
-#！/usr/bin/python
-# -*- coding: utf-8 -*-#
-
-'''
----------------------------------
- Name:         controllers.py
- Description:  Implement the solver-based agent of the proposed MASA framework.
- Author:       MASA
----------------------------------
-'''
-
 import numpy as np
 import pandas as pd
 import time

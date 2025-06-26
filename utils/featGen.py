@@ -1,19 +1,8 @@
-#！/usr/bin/python
-# -*- coding: utf-8 -*-#
-'''
----------------------------------
- Name:         featGen.py
- Description:  Technical feature generation.
- Author:       MASA
----------------------------------
-'''
 import numpy as np
 import pandas as pd
 import copy
 import os
 from talib import abstract
-import sys
-sys.path.append(".")
 
 class FeatureProcesser:
     """

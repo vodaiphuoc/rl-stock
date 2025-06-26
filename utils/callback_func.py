@@ -1,11 +1,3 @@
-#！/usr/bin/python
-# -*- coding: utf-8 -*-#
-'''
----------------------------------
- Name: callback_func.py  
- Author: MASA
---------------------------------
-'''
 import numpy as np
 import os
 import pandas as pd
@@ -14,10 +6,8 @@ import matplotlib
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 from stable_baselines3.common.callbacks import BaseCallback
-from .model_pool import model_select
-import sys
-sys.path.append('..')
-from RL_controller.controllers import RL_withoutController, RL_withController
+from agent.model_pool import model_select
+from agent.controllers import RL_withoutController, RL_withController
 
 class PoCallback(BaseCallback):
 

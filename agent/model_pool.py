@@ -1,20 +1,8 @@
-#！/usr/bin/python
-# -*- coding: utf-8 -*-#
-
-'''
----------------------------------
- Name:         model_pool.py
- Description:  API for algorithm selection 
- Author:       MASA
----------------------------------
-'''
-
-import sys
-sys.path.append('..')
 from stable_baselines3 import TD3
-from RL_controller.TD3_controller import TD3Controller
+from .TD3_controller import TD3Controller
+from typing import Type, Union
 
-def model_select(model_name, mode):
+def model_select(model_name, mode)->Union[Type[TD3], Type[TD3Controller]]:
     if mode == 'RLonly':
         model_dict = {
             'TD3': TD3,

@@ -1,8 +1,7 @@
-from vnstock3 import Listing
+from typing import Type
+class A(object):
+    def print(self):
+        print('hello')
 
 
-listing = Listing()
-symbols = listing.all_symbols()
-
-
-symbols.to_excel("data/symbols/all_symbols.xlsx")
+print(type(Type[A]))

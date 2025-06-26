@@ -1,16 +1,6 @@
-#！/usr/bin/python
-# -*- coding: utf-8 -*-#
-
-'''
----------------------------------
- Name: entrance.py  
- Author: MASA
---------------------------------
-'''
-
 import os
-os.environ['CUDA_DEVICE_ORDRE'] = 'PCI_BUS_ID'
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+# os.environ['CUDA_DEVICE_ORDRE'] = 'PCI_BUS_ID'
+# os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 import random 
 import numpy as np
 import torch as th
@@ -23,22 +13,21 @@ th.use_deterministic_algorithms(True)
 
 import pandas as pd
 import time
-from config import Config
+from utils.config import Config
 from utils.featGen import FeatureProcesser
-from utils.tradeEnv import StockPortfolioEnv, StockPortfolioEnv_cash
-from utils.model_pool import model_select, benchmark_algo_select
 from utils.callback_func import PoCallback
-from RL_controller.market_obs import MarketObserver, MarketObserver_Algorithmic
+
+from environment.env import StockPortfolioEnv, StockPortfolioEnv_cash
+
+from agent.model_pool import model_select, benchmark_algo_select
+
+from observation.market_obs import MarketObserver, MarketObserver_Algorithmic
 import timeit
 
-def RLonly(config):
+def run_rlonly(config):
     # For running the single-agent RL-based framework (TD3-Profit, TD3-PR, TD3-SR)
     # Get dataset
-    mkt_name = config.market_name
-    fpath = os.path.join(config.dataDir, '{}_{}_{}.csv'.format(mkt_name, config.topK, config.freq))
-    if not os.path.exists(fpath):
-        raise ValueError("Cannot load the data from {}".format(fpath))
-    data = pd.DataFrame(pd.read_csv(fpath, header=0))
+    data = pd.DataFrame(pd.read_csv(config.dataDir, header=0))
     
     # Preprocess features
     featProc = FeatureProcesser(config=config)
@@ -96,14 +85,10 @@ def RLonly(config):
     print("Training Done...", flush=True)
 
 
-def RLcontroller(config):
+def run_rlcontroller(config):
     # For running the MASA framework
     # Get dataset
-    mkt_name = config.market_name
-    fpath = os.path.join(config.dataDir, '{}_{}_{}.csv'.format(mkt_name, config.topK, config.freq))
-    if not os.path.exists(fpath):
-        raise ValueError("Cannot load the data from {}".format(fpath))
-    data = pd.DataFrame(pd.read_csv(fpath, header=0))
+    data = pd.DataFrame(pd.read_csv(config.dataDir, header=0))
 
     # Preprocess features
     featProc = FeatureProcesser(config=config)
@@ -193,9 +178,9 @@ def entrance():
     config = Config(seed_num=rand_seed, current_date=current_date) 
     config.print_config()
     if config.mode == 'RLonly':
-        RLonly(config=config)
+        run_rlonly(config=config)
     elif config.mode == 'RLcontroller':
-        RLcontroller(config=config)
+        run_rlcontroller(config=config)
     elif config.mode == 'Benchmark':
         raise NotImplementedError("Please refer to the corresponding papers and their provided implementations.")
     else:

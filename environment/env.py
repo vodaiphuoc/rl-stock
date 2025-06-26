@@ -1,12 +1,3 @@
-#！/usr/bin/python
-# -*- coding: utf-8 -*-#
-'''
----------------------------------
- Name: tradeEnv.py  
- Description: Define the trading environment for the trading agent.
- Author: MASA
---------------------------------
-'''
 import numpy as np
 import os
 import pandas as pd
