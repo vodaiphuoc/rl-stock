@@ -6,4 +6,5 @@ stable-baselines3
 cvxopt
 scipy
 cvxpy
+shimmy
 TA-Lib

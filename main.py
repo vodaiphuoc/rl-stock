@@ -27,7 +27,7 @@ import timeit
 def run_rlonly(config: Config):
     # For running the single-agent RL-based framework (TD3-Profit, TD3-PR, TD3-SR)
     # Get dataset
-    data = pd.DataFrame(pd.read_excel(config.dataDir, header=0))
+    data = pd.DataFrame(pd.read_excel(config.data_stock_dir, header=0))
     
     # Preprocess features
     featProc = FeatureProcesser(config=config)
@@ -39,8 +39,13 @@ def run_rlonly(config: Config):
     # Initialize environment
     trainInvest_env_para = config.invest_env_para 
     env_train = StockPortfolioEnv(
-        config=config, rawdata=data_dict['train'], mode='train', stock_num=stock_num, action_dim=stock_num, 
-        tech_indicator_lst=tech_indicator_lst, **trainInvest_env_para
+        config=config, 
+        rawdata=data_dict['train'], 
+        mode='train', 
+        stock_num=stock_num, 
+        action_dim=stock_num, 
+        tech_indicator_lst=tech_indicator_lst, 
+        **trainInvest_env_para
     )
     if (config.valid_date_start is not None) and (config.valid_date_end is not None):
         validInvest_env_para = config.invest_env_para 
@@ -88,7 +93,7 @@ def run_rlonly(config: Config):
 def run_rlcontroller(config: Config):
     # For running the MASA framework
     # Get dataset
-    data = pd.DataFrame(pd.read_excel(config.dataDir, header=0))
+    data = pd.DataFrame(pd.read_excel(config.data_stock_dir, header=0))
 
     # Preprocess features
     featProc = FeatureProcesser(config=config)
@@ -161,7 +166,10 @@ def run_rlcontroller(config: Config):
     timeit_default = timeit.default_timer()
     my_globals = globals()
     my_globals.update({'po_model': po_model, 'total_timesteps': total_timesteps, 'callback1': callback1, 'log_interval': log_interval})
-    t = timeit.Timer(stmt='po_model.learn(total_timesteps=total_timesteps, callback=callback1, log_interval=log_interval)', globals=my_globals)
+    t = timeit.Timer(
+        stmt='po_model.learn(total_timesteps=total_timesteps, callback=callback1, log_interval=log_interval)', 
+        globals=my_globals
+    )
     time_usage = t.timeit(number=1)
     cpt_usgae = time.process_time() - cpt_start
     perf_usgae = time.perf_counter() - perft_start

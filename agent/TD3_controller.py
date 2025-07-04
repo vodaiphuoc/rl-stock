@@ -18,9 +18,6 @@ from stable_baselines3.common.preprocessing import get_flattened_obs_dim
 from stable_baselines3.common.preprocessing import get_action_dim
 from .controllers import RL_withController
 
-from environment.env import StockPortfolioEnv
-
-
 SelfTD3 = TypeVar("SelfTD3", bound="TD3")
 
 def create_mlp_adj(
@@ -126,7 +123,7 @@ class ActorAdj(BasePolicy):
 
     def forward(self, obs: th.Tensor) -> th.Tensor:
         # assert deterministic, 'The TD3 actor only outputs deterministic actions'
-        features = self.extract_features(obs)
+        features = self.extract_features(obs, features_extractor= self.features_extractor)
         td3_decision = self.mu(features[:, :-self.action_dim]) # range [0, 1], sum=1
         mkt_decision = features[:, -self.action_dim:] # range [0, 1], sum=1
         final_output = (td3_decision + mkt_decision) - 1 # range [-1, 1]
@@ -272,7 +269,7 @@ class TD3Controller(OffPolicyAlgorithm):
     def __init__(
         self,
         policy: Union[str, Type[TD3Policy]],
-        env: StockPortfolioEnv,
+        env: gym.Env,
         learning_rate: Union[float, Schedule] = 1e-3,
         buffer_size: int = 1_000_000,  # 1e6
         learning_starts: int = 100,
@@ -317,7 +314,7 @@ class TD3Controller(OffPolicyAlgorithm):
             seed=seed,
             sde_support=False,
             optimize_memory_usage=optimize_memory_usage,
-            supported_action_spaces=(gym.spaces.Box),
+            # supported_action_spaces=(gym.spaces.Box),
             support_multi_env=True,
         )
 
@@ -493,7 +490,7 @@ class TD3Controller(OffPolicyAlgorithm):
             else:
                 a_rl = a_rl / np.sum(np.abs(a_rl))
 
-            a_final = RL_withController(a_rl=a_rl, env=env.envs[0])
+            a_final = RL_withController(a_rl=a_rl, env=env.envs[0].env)
             a_final = a_final / np.sum(np.abs(a_final))
 
             # Rescale and perform action

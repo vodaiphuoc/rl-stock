@@ -15,15 +15,16 @@ import datetime
 from agent.TD3_controller import TD3PolicyOriginal
 
 class Config(object):
+    r"""Master config"""
     def __init__(self, seed_num=2022, current_date=None):
 
         self.notes = 'AAMAS MASA Implementation'
 
 
         # Algorithm: 'MASA-dc', 'MASA-mlp', 'MASA-lstm', 'TD3-Profit', 'TD3-PR', 'TD3-SR', 'CRP', (Please implement firstly before running 'EG', 'OLMAR', 'PAMR', 'CORN', 'RMR', 'EIIE', 'PPN', 'RAT')
-        self.benchmark_algo = "TD3-PR" #'MASA-dc' 
-        self.market_name = 'DJIA' # Financial Index: 'DJIA', 'SP500', 'CSI300'
-        self.topK = 10 # Number of assets in a portfolio (10, 20, 30)
+        self.benchmark_algo = 'MASA-dc' 
+        self.market_name = 'HOSE' # Financial Index: 'DJIA', 'SP500', 'CSI300'
+        self.topK = 20 # Number of assets in a portfolio (10, 20, 30)
         self.num_epochs = 50 # episode.
 
         if 'TD3' in self.benchmark_algo:
@@ -70,7 +71,8 @@ class Config(object):
 
         self.period_mode = 1 
         self.tmp_name = 'Cls3_{}_{}_K{}_M{}_{}_{}'.format(self.mode, self.mktobs_algo, self.topK, self.period_mode, self.market_name, self.trained_best_model_type)
-        self.dataDir = 'data/prices/all_prices.xlsx'
+        self.data_stock_dir = 'data/prices/all_prices.xlsx'
+        self.data_market_dir = 'data/prices/vnindex.xlsx'
         self.pricePredModel = 'MA'
         self.cov_lookback = 5 
         self.norm_method = 'sum'
@@ -104,12 +106,12 @@ class Config(object):
         self.tradeDays_per_month = 21
         self.seed_num = seed_num
         date_split_dict = {            
-            1: {'train_date_start': '2013-09-01 00:00:00',
-                'train_date_end': '2018-08-31 23:59:59',
-                'valid_date_start': '2018-09-01 00:00:00',
-                'valid_date_end': '2020-08-31 23:59:59',
-                'test_date_start': '2020-09-01 00:00:00',
-                'test_date_end': '2023-08-31 23:59:59'},
+            1: {'train_date_start': '2018-11-26 00:00:00',
+                'train_date_end': '2021-12-31 23:59:59',
+                'valid_date_start': '2022-01-01 00:00:00',
+                'valid_date_end': '2023-12-31 23:59:59',
+                'test_date_start': '2023-01-01 00:00:00',
+                'test_date_end': '2025-01-01 23:59:59'},
         }
         
         self.train_date_start = pd.Timestamp(date_split_dict[self.period_mode]['train_date_start'])
@@ -140,10 +142,12 @@ class Config(object):
             'SP500': 1.6575,
             'CSI300': 3.037,
             'DJIA': 1.6575,
+            'HOSE': 1.0
         }
 
         self.market_close_time = {
             'CSI300': '15:00:00',
+            'HOSE': '15:00:00',
         }
         self.invest_env_para = {
             'max_shares': 100, 
@@ -186,7 +190,7 @@ class Config(object):
 
     def load_market_observer_config(self):
         self.freq = '1d'
-        self.finefreq = '60m'
+        self.finefreq = '1d'
         self.fine_window_size = 4
         self.feat_scaler = 10 
         
@@ -250,7 +254,7 @@ class Config(object):
         log_str = '=' * 30 + '\n'
         para_str = '{} \n'.format(self.notes)
         log_str = log_str + para_str
-        para_str = 'mode: {}, rl_model_name: {}, market_name: {}, topK: {}, dataDir: {}, enable_controller: {}, \n'.format(self.mode, self.rl_model_name, self.market_name, self.topK, self.dataDir, self.enable_controller)
+        para_str = 'mode: {}, rl_model_name: {}, market_name: {}, topK: {}, dataDir: {}, enable_controller: {}, \n'.format(self.mode, self.rl_model_name, self.market_name, self.topK, self.data_stock_dir, self.enable_controller)
         log_str = log_str + para_str
         para_str = 'trade_pattern: {} \n'.format(self.trade_pattern)
         log_str = log_str + para_str

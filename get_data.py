@@ -30,6 +30,7 @@ def get_stock(stock_symbol: str, start_day:str = "2010-01-01")->pd.DataFrame:
         interval = '1D'
     )
     stock_values = stock_values.sort_values(by = 'time')
+    print(stock_symbol, stock_values['time'].head(5))
 
     stock_values['year'] = stock_values['time'].dt.year
     stock_values['month'] = stock_values['time'].dt.month
@@ -50,7 +51,7 @@ companies = [
     "MSN","VIC","PNJ","EIB","STB"
 ]
 
-start_day="2010-01-01"
+start_day="2018-11-26"
 df_list = [get_stock(stock_symbol= symbol, start_day=start_day) 
            for symbol in companies
 ]
@@ -64,4 +65,5 @@ market_data = market_stock.quote.history(
     end = str(datetime.now().date()),
     interval = '1D')
 
+market_data['date'] = market_data['time']
 market_data.to_excel('data/prices/vnindex.xlsx',index=False)

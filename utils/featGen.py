@@ -251,7 +251,6 @@ class FeatureProcesser:
         data_bftrain.sort_values(['date', 'stock'], ascending=True, inplace=True, ignore_index=True)
         dataset_dict['bftrain'] = data_bftrain
 
-        print(datax)
         # ['date', 'stock', 'open', 'high', 'low', 'close'] + [{technical_indicators}]
         return dataset_dict
 
@@ -259,28 +258,64 @@ class FeatureProcesser:
         r"""
         Preprocess the data for the market observer.
         """
+        
         # Fine market data
         fine_mkt_data = self._gen_market_feat(freq=self.config.finefreq)
-        # Fine stock data
-        fine_stock_data = self._gen_fine_stock_feat()
+        fine_mkt_data = fine_mkt_data[fine_mkt_data['date'] >= pd.Timestamp(data['train']['date'][0])]
+        fine_mkt_data.reset_index(inplace= True, drop= True)
+        print(fine_mkt_data['date'][0])
 
         # Train
         daily_date_lst = data['train']['date'].unique()
         extra_train_data = {}
 
-        fmd_train = copy.deepcopy(fine_mkt_data[(fine_mkt_data['date'] >= self.config.train_date_start) & (fine_mkt_data['date'] <= self.config.train_date_end)])
+        fmd_train = copy.deepcopy(
+            fine_mkt_data[(fine_mkt_data['date'] >= self.config.train_date_start) & (fine_mkt_data['date'] <= self.config.train_date_end)]
+            )
+
         fmd_train.sort_values(['date'], ascending=True, inplace=True, ignore_index=True)
         extra_train_data['fine_market'] = fmd_train
         fmd_date_lst = fmd_train['date'].unique()
         if (len(set(fmd_date_lst) - set(daily_date_lst)) != 0) or (len(set(daily_date_lst) - set(fmd_date_lst)) != 0):
-            raise ValueError("[Train, fine market] | ref date number: {}, extract date number: {} \nmissing dates in ref: {}\nmissing dates in extraction: {}".format(len(fmd_date_lst), len(daily_date_lst), set(fmd_date_lst) - set(daily_date_lst), set(daily_date_lst) - set(fmd_date_lst)))
+            raise ValueError("""
+[Train, fine market] | 
+    ref date number: {}, 
+    extract date number: {} 
+    missing dates in ref: {}
+    missing dates in extraction: {}
+""".format(
+    len(fmd_date_lst), 
+    len(daily_date_lst), 
+    set(fmd_date_lst) - set(daily_date_lst), 
+    set(daily_date_lst) - set(fmd_date_lst))
+    )
 
-        fsd_train = copy.deepcopy(fine_stock_data[(fine_stock_data['date'] >= self.config.train_date_start) & (fine_stock_data['date'] <= self.config.train_date_end)])
+        # Fine stock data
+        fine_stock_data = self._gen_fine_stock_feat()
+        print('fine_stock_data: ', fine_stock_data.head(4))
+        fsd_train = copy.deepcopy(
+            fine_stock_data[(fine_stock_data['date'] >= self.config.train_date_start) & (fine_stock_data['date'] <= self.config.train_date_end)]
+        )
+        fsd_train = fsd_train[fsd_train['date'] >= pd.Timestamp(data['train']['date'][0])]
         fsd_train.sort_values(['stock', 'date'], ascending=True, inplace=True, ignore_index=True)
+        fsd_train.reset_index(inplace= True, drop= True)
+        
         extra_train_data['fine_stock'] = fsd_train
         fsd_date_lst = fsd_train['date'].unique()
+
         if (len(set(fsd_date_lst) - set(daily_date_lst)) != 0) or (len(set(daily_date_lst) - set(fsd_date_lst)) != 0):
-            raise ValueError("[Train, fine stock] | ref date number: {}, extract date number: {} \nmissing dates in ref: {}\nmissing dates in extraction: {}".format(len(fsd_date_lst), len(daily_date_lst), set(fsd_date_lst) - set(daily_date_lst), set(daily_date_lst) - set(fsd_date_lst)))
+            raise ValueError("""
+[Train, fine stock] | 
+    ref date number: {}, 
+    extract date number: {}
+    missing dates in ref: {}
+    missing dates in extraction: {}
+""".format(
+    len(fsd_date_lst), 
+    len(daily_date_lst), 
+    set(fsd_date_lst) - set(daily_date_lst), 
+    set(daily_date_lst) - set(fsd_date_lst))
+    )
         data['extra_train'] = extra_train_data
 
         # Valid
@@ -324,13 +359,11 @@ class FeatureProcesser:
         return data
 
     def _gen_market_feat(self, freq, daily_date_lst=None)->pd.DataFrame:
-        fpath = os.path.join(self.config.dataDir, '{}_{}_index.csv'.format(self.config.market_name , freq))
+        fpath = self.config.data_market_dir
         isHasFineData = True
-        if not os.path.exists(fpath):
-            fpath = os.path.join(self.config.dataDir, '{}_{}_index.csv'.format(self.config.market_name , '1d'))
-            isHasFineData = False
-            print("Cannot find the {}-freq market data, will use 1d data instead.".format(freq))
-        raw_data = pd.DataFrame(pd.read_csv(fpath, header=0, usecols=['date']+list(self.config.use_features)))
+        
+        raw_data = pd.DataFrame(pd.read_excel(fpath, header=0, usecols=['date']+list(self.config.use_features)))
+        raw_data
         raw_data['date'] = pd.to_datetime(raw_data['date'])
         raw_data = raw_data.groupby(['date']).mean().reset_index(drop=False, inplace=False)
         raw_data.sort_values(['date'], ascending=True, inplace=True, ignore_index=True)
@@ -379,26 +412,27 @@ class FeatureProcesser:
 
     def _gen_fine_stock_feat(self, daily_date_lst=None):
 
-        fpath = os.path.join(self.config.dataDir, '{}_{}_{}.csv'.format(self.config.market_name, self.config.topK, self.config.finefreq))
-        isHasFineData = True
-        if not os.path.exists(fpath):
-            fpath = os.path.join(self.config.dataDir, '{}_{}_{}.csv'.format(self.config.market_name, self.config.topK, '1d'))
-            isHasFineData = False
-            print("Cannot find the {}-freq stock data, will use 1d data instead.".format(self.config.finefreq))
-        raw_data = pd.DataFrame(pd.read_csv(fpath, header=0, usecols=['date', 'stock']+list(self.config.use_features)))
+        fpath = self.config.data_stock_dir
+        
+        raw_data = pd.DataFrame(pd.read_excel(fpath, header=0, usecols=['date', 'stock']+list(self.config.use_features)))
         raw_data['date'] = pd.to_datetime(raw_data['date'])
-        # raw_data.sort_values(['date', 'stock'], ascending=True, inplace=True, ignore_index=True)
+        raw_data.sort_values(['date', 'stock'], ascending=True, inplace=True, ignore_index=True)
         raw_data = raw_data.groupby(['date', 'stock']).mean().reset_index(drop=False, inplace=False)
         stock_lst = raw_data['stock'].unique()
         fine_data = pd.DataFrame()
         ma_func = abstract.Function('ma')
+
         for stock_id in stock_lst:
             dataSig = copy.deepcopy(raw_data[raw_data['stock']==stock_id])
             dataSig.sort_values(['date'], ascending=True, inplace=True, ignore_index=True)
 
             ma_ay = ma_func(np.array(dataSig['close']), timeperiod=self.config.fine_window_size+1)
 
-            temp = {'date': np.array(dataSig['date']), 'stock_{}_close'.format(self.config.finefreq): np.array(dataSig['close']), 'stock_{}_ma'.format(self.config.finefreq): ma_ay}
+            temp = {
+                'date': np.array(dataSig['date']), 
+                'stock_{}_close'.format(self.config.finefreq): np.array(dataSig['close']), 
+                'stock_{}_ma'.format(self.config.finefreq): ma_ay
+            }
             output_cols = ['date'] + self.config.finestock_feat_cols_lst + ['stock_{}_ma'.format(self.config.finefreq), 'stock_{}_close'.format(self.config.finefreq)]
             if self.config.is_gen_dc_feat:
                 dc_events = dc_feature_generation(data=np.array(dataSig['close']), dc_threshold=self.config.dc_threshold[0])
@@ -418,15 +452,12 @@ class FeatureProcesser:
                     temp['stock_{}_{}_w{}'.format(self.config.finefreq, change_feat, widx)] = np.append(np.zeros(widx-1), cg_ay[:-(widx-1)], axis=0)
 
             temp = pd.DataFrame(temp)
-            if isHasFineData:
-                temp['time'] = temp['date'].apply(lambda x: x.strftime('%H:%M:%S')) # Get hour-min-sec
-                temp = temp[temp['time']==self.config.market_close_time[self.config.market_name]][output_cols] # Extract the datapoint of the market close time.
-                temp['date'] = temp['date'].apply(lambda x: x.strftime('%Y-%m-%d')) # Convert Year-Month-Day hh:mm:ss to Year-Month-Day
-            else:
-                temp = temp[output_cols]
+            temp = temp[output_cols]
+
             temp.reset_index(drop=True, inplace=True)
             temp['stock'] = stock_id
             fine_data = pd.concat([fine_data, temp], axis=0, join='outer')
+        
         fine_data['date'] = pd.to_datetime(fine_data['date'])
         fine_data.sort_values(['stock', 'date'], ascending=True, inplace=True, ignore_index=True)
     

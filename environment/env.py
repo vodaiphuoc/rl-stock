@@ -10,7 +10,7 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 from scipy.stats import entropy
 import scipy.stats as spstats
 
-# from utils.config import Config
+from utils.config import Config
 from observation.market_obs import MarketObserver, MarketObserver_Algorithmic
 
 from typing import Literal, Union, Dict
@@ -20,7 +20,6 @@ from types import NoneType
 MKT_OBSERVER_TYPE = Union[NoneType, MarketObserver, MarketObserver_Algorithmic]
 
 class StockPortfolioEnv(gym.Env):
-
     def __init__(
             self, 
             config: "Config", 
@@ -820,7 +819,8 @@ class StockPortfolioEnv(gym.Env):
             else:
                 dc_events = None
             
-            finestock_feat = finestock_feat[finestock_feat['date']==cur_date][self.config.finestock_feat_cols_lst].values
+            finestock_feat: np.ndarray = finestock_feat[finestock_feat['date']==cur_date][self.config.finestock_feat_cols_lst].values
+            
             finestock_feat = np.reshape(finestock_feat, (self.config.topK, len(self.config.use_features), self.config.fine_window_size)) # -> (num_of_stocks, features, window_size)
             finestock_feat = np.transpose(finestock_feat, (1, 0, 2)) # -> (features, num_of_stocks, window_size)
             finestock_feat = np.expand_dims(finestock_feat, axis=0) # -> (batch=1, features, num_of_stocks, window_size)
