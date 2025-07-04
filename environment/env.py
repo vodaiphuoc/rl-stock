@@ -10,11 +10,35 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 from scipy.stats import entropy
 import scipy.stats as spstats
 
+# from utils.config import Config
+from observation.market_obs import MarketObserver, MarketObserver_Algorithmic
+
+from typing import Literal, Union, Dict
+from types import NoneType
+
+
+MKT_OBSERVER_TYPE = Union[NoneType, MarketObserver, MarketObserver_Algorithmic]
+
 class StockPortfolioEnv(gym.Env):
 
-    def __init__(self, config, rawdata, mode, stock_num, action_dim, tech_indicator_lst, max_shares,
-                 initial_asset=1000000, reward_scaling=1, norm_method='sum', transaction_cost=0.001, slippage=0.001, 
-                 seed_num=2022, extra_data=None, mkt_observer=None):
+    def __init__(
+            self, 
+            config: "Config", 
+            rawdata: pd.DataFrame, 
+            mode: Literal["train","test","valid"], 
+            stock_num: int, 
+            action_dim: int, 
+            tech_indicator_lst: list, 
+            max_shares: int,
+            initial_asset=1000000, 
+            reward_scaling=1, 
+            norm_method='sum', 
+            transaction_cost: float = 0.001, 
+            slippage:float = 0.001, 
+            seed_num: int =2022, 
+            extra_data: Dict[str, pd.DataFrame] = None, 
+            mkt_observer: MKT_OBSERVER_TYPE = None
+        ):
         
         self.config = config
         self.rawdata = rawdata
@@ -847,7 +871,7 @@ class StockPortfolioEnv_cash(StockPortfolioEnv):
                 # Training at the end of epoch
                 ori_profit_rate = np.append([1], np.array(self.return_raw_lst)[1:] / np.array(self.return_raw_lst)[:-1], axis=0)
                 adj_profit_rate = np.array(self.profit_lst) + 1
-                label_kwargs = {'ori_profit': ori_profit_rate, 'adj_profit': adj_profit_rate, 'ori_risk': np.array(elf.risk_raw_lst), 'adj_risk': np.array(self.risk_cbf_lst)}
+                label_kwargs = {'ori_profit': ori_profit_rate, 'adj_profit': adj_profit_rate, 'ori_risk': np.array(self.risk_raw_lst), 'adj_risk': np.array(self.risk_cbf_lst)}
                 self.mkt_observer.train(**label_kwargs)
 
             self.end_cputime = time.process_time()

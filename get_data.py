@@ -38,23 +38,30 @@ def get_stock(stock_symbol: str, start_day:str = "2010-01-01")->pd.DataFrame:
     stock_values.drop_duplicates(inplace=True)
     stock_values.reset_index(drop = True, inplace = True)
 
-    stock_values['time'] = pd.to_datetime(stock_values['time'], format="%Y-%m-%d")
+    stock_values['date'] = stock_values['time']
+
+    stock_values['stock'] = stock_symbol
     return stock_values
 
-
-
 companies = [
-    "AAV","CMG","VCB","ACB","TCB",
-    "BID","FOC","FPT","HPG","GEX",
-    "MSR","MVN","YEG","HSG","VHM",
+    "VTP","CMG","VCB","ACB","TCB",
+    "BID","TCL","FPT","HPG","GEX",
+    "TRA","VRC","YEG","HSG","VHM",
     "MSN","VIC","PNJ","EIB","STB"
 ]
 
-with pd.ExcelWriter('data/prices/all_prices.xlsx', engine='xlsxwriter') as writer:
-    for symbol in companies:
-        try:
-            data = get_stock(stock_symbol= symbol, start_day="2010-01-01")
-            data.to_excel(writer, sheet_name= symbol, index=False)
-        except Exception as e:
-            print(f'error {e} with symbol: {symbol}')
-        
+start_day="2010-01-01"
+df_list = [get_stock(stock_symbol= symbol, start_day=start_day) 
+           for symbol in companies
+]
+total_df = pd.concat(df_list)
+total_df.to_excel('data/prices/all_prices.xlsx',index=False)
+
+# get market data
+market_stock = Vnstock().stock(symbol='VNINDEX', source='VCI')
+market_data = market_stock.quote.history(
+    start = start_day, 
+    end = str(datetime.now().date()),
+    interval = '1D')
+
+market_data.to_excel('data/prices/vnindex.xlsx',index=False)

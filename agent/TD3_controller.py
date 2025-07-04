@@ -18,6 +18,9 @@ from stable_baselines3.common.preprocessing import get_flattened_obs_dim
 from stable_baselines3.common.preprocessing import get_action_dim
 from .controllers import RL_withController
 
+from environment.env import StockPortfolioEnv
+
+
 SelfTD3 = TypeVar("SelfTD3", bound="TD3")
 
 def create_mlp_adj(
@@ -269,7 +272,7 @@ class TD3Controller(OffPolicyAlgorithm):
     def __init__(
         self,
         policy: Union[str, Type[TD3Policy]],
-        env: Union[GymEnv, str],
+        env: StockPortfolioEnv,
         learning_rate: Union[float, Schedule] = 1e-3,
         buffer_size: int = 1_000_000,  # 1e6
         learning_starts: int = 100,

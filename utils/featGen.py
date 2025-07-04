@@ -3,15 +3,17 @@ import pandas as pd
 import copy
 import os
 from talib import abstract
+from .config import Config
+from typing import Dict
 
 class FeatureProcesser:
     """
     Preprocess the training data.
     """
-    def __init__(self, config):
+    def __init__(self, config: Config):
         self.config = config
     
-    def preprocess_feat(self, data):
+    def preprocess_feat(self, data: pd.DataFrame):
         data = self.gen_feat(data=data)
         data = self.scale_feat(data=data)
         data = self.process_finedata(data=data)
@@ -28,7 +30,7 @@ class FeatureProcesser:
         """
         return data
     
-    def gen_feat(self, data):
+    def gen_feat(self, data: pd.DataFrame)->pd.DataFrame:
         data['date'] = pd.to_datetime(data['date'])
         data.sort_values(['stock', 'date'], ascending=True, inplace=True, ignore_index=True)
         # ['date', 'stock', 'open', 'high', 'low', 'close', 'volume']
@@ -146,7 +148,16 @@ class FeatureProcesser:
         self.techIndicatorLst = sorted(list(set(cur_cols) - set(self.rawColLst) - set(self.config.otherRef_indicator_lst)))
         return datax
 
-    def scale_feat(self, data):
+    def scale_feat(self, data: pd.DataFrame)->Dict[str, pd.DataFrame]:
+        r"""
+        Returns:
+
+            a dictionary with keys:
+                - train
+                - valid
+                - test
+                - bftrain
+        """
         data['date'] = pd.to_datetime(data['date'])
         datax = copy.deepcopy(data)
 
@@ -160,7 +171,7 @@ class FeatureProcesser:
                 sigPeriodData = datax.loc[idx-self.config.cov_lookback:idx, :]
                 sigPeriodClose = sigPeriodData.pivot_table(index = 'date',columns = 'stock', values = 'close')
                 sigPeriodClose.sort_values(['date'], ascending=True, inplace=True)
-                sigPeriodReturn = sigPeriodClose.pct_change().dropna()
+                sigPeriodReturn = sigPeriodClose.pct_change(fill_method = None).dropna()
                 covs = sigPeriodReturn.cov().values 
                 cov_lst.append(covs)
                 date_lst.append(datax.loc[idx, 'date'].values[0])
@@ -180,7 +191,7 @@ class FeatureProcesser:
                 sigPeriodData = datax.loc[idx-self.config.dailyRetun_lookback:idx, :][['date', 'stock', 'close']]
                 sigPeriodClose = sigPeriodData.pivot_table(index = 'date',columns = 'stock', values = 'close')
                 sigPeriodClose.sort_values(['date'], ascending=True, inplace=True)
-                sigPeriodReturn = sigPeriodClose.pct_change().dropna() # without percentage
+                sigPeriodReturn = sigPeriodClose.pct_change(fill_method = None).dropna() # without percentage
                 sigPeriodReturn.sort_values(['date'], ascending=True, inplace=True)
                 sigStockName_lst = np.array(sigPeriodReturn.columns)
                 stockNo_lst = stockNo_lst + list(sigStockName_lst)
@@ -244,12 +255,14 @@ class FeatureProcesser:
         # ['date', 'stock', 'open', 'high', 'low', 'close'] + [{technical_indicators}]
         return dataset_dict
 
-    def process_finedata(self, data):
-        # Preprocess the data for the market observer.
+    def process_finedata(self, data: Dict[str, pd.DataFrame]):
+        r"""
+        Preprocess the data for the market observer.
+        """
         # Fine market data
-        fine_mkt_data = self.gen_market_feat(freq=self.config.finefreq)
+        fine_mkt_data = self._gen_market_feat(freq=self.config.finefreq)
         # Fine stock data
-        fine_stock_data = self.gen_fine_stock_feat()
+        fine_stock_data = self._gen_fine_stock_feat()
 
         # Train
         daily_date_lst = data['train']['date'].unique()
@@ -310,7 +323,7 @@ class FeatureProcesser:
             data['extra_test'] = extra_test_data
         return data
 
-    def gen_market_feat(self, freq, daily_date_lst=None):
+    def _gen_market_feat(self, freq, daily_date_lst=None)->pd.DataFrame:
         fpath = os.path.join(self.config.dataDir, '{}_{}_index.csv'.format(self.config.market_name , freq))
         isHasFineData = True
         if not os.path.exists(fpath):
@@ -355,6 +368,7 @@ class FeatureProcesser:
                 mkt_pd['date'] = pd.to_datetime(mkt_pd['date'])
                 mkt_pd = mkt_pd[['date'] + self.config.finemkt_feat_cols_lst + ['mkt_{}_ma'.format(freq), 'mkt_{}_close'.format(freq)]]
             mkt_pd.sort_values(['date'], ascending=True, inplace=True, ignore_index=True)
+
         elif freq == '1d':
             pass
         else:
@@ -363,7 +377,7 @@ class FeatureProcesser:
         # The 60m fine market date only includes one datapoint per day (the datapoint is at the market close time), The other timepoints within a day are not included. 
         return mkt_pd
 
-    def gen_fine_stock_feat(self, daily_date_lst=None):
+    def _gen_fine_stock_feat(self, daily_date_lst=None):
 
         fpath = os.path.join(self.config.dataDir, '{}_{}_{}.csv'.format(self.config.market_name, self.config.topK, self.config.finefreq))
         isHasFineData = True

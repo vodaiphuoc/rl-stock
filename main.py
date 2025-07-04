@@ -24,10 +24,10 @@ from agent.model_pool import model_select, benchmark_algo_select
 from observation.market_obs import MarketObserver, MarketObserver_Algorithmic
 import timeit
 
-def run_rlonly(config):
+def run_rlonly(config: Config):
     # For running the single-agent RL-based framework (TD3-Profit, TD3-PR, TD3-SR)
     # Get dataset
-    data = pd.DataFrame(pd.read_csv(config.dataDir, header=0))
+    data = pd.DataFrame(pd.read_excel(config.dataDir, header=0))
     
     # Preprocess features
     featProc = FeatureProcesser(config=config)
@@ -85,10 +85,10 @@ def run_rlonly(config):
     print("Training Done...", flush=True)
 
 
-def run_rlcontroller(config):
+def run_rlcontroller(config: Config):
     # For running the MASA framework
     # Get dataset
-    data = pd.DataFrame(pd.read_csv(config.dataDir, header=0))
+    data = pd.DataFrame(pd.read_excel(config.dataDir, header=0))
 
     # Preprocess features
     featProc = FeatureProcesser(config=config)
@@ -109,19 +109,32 @@ def run_rlcontroller(config):
     if (config.valid_date_start is not None) and (config.valid_date_end is not None):
         validInvest_env_para = config.invest_env_para 
         env_valid = StockPortfolioEnv(
-            config=config, rawdata=data_dict['valid'], mode='valid', stock_num=stock_num, action_dim=stock_num, 
-            tech_indicator_lst=tech_indicator_lst, extra_data=data_dict['extra_valid'], 
-            mkt_observer=mkt_observer, **validInvest_env_para
+            config=config, 
+            rawdata=data_dict['valid'], 
+            mode='valid', 
+            stock_num=stock_num, 
+            action_dim=stock_num, 
+            tech_indicator_lst=tech_indicator_lst, 
+            extra_data=data_dict['extra_valid'], 
+            mkt_observer=mkt_observer, 
+            **validInvest_env_para
         )
     else:
         env_valid = None
         raise ValueError("No validation set is provided for training")
+    
     if (config.test_date_start is not None) and (config.test_date_end is not None):
         testInvest_env_para = config.invest_env_para 
         env_test = StockPortfolioEnv(
-            config=config, rawdata=data_dict['test'], mode='test', stock_num=stock_num, action_dim=stock_num, 
-            tech_indicator_lst=tech_indicator_lst, extra_data=data_dict['extra_test'], 
-            mkt_observer=mkt_observer, **testInvest_env_para
+            config=config, 
+            rawdata=data_dict['test'], 
+            mode='test', 
+            stock_num=stock_num, 
+            action_dim=stock_num, 
+            tech_indicator_lst=tech_indicator_lst, 
+            extra_data=data_dict['extra_test'], 
+            mkt_observer=mkt_observer, 
+            **testInvest_env_para
         )
     else:
         env_test = None

@@ -14,12 +14,14 @@ import time
 import datetime
 from agent.TD3_controller import TD3PolicyOriginal
 
-class Config():
+class Config(object):
     def __init__(self, seed_num=2022, current_date=None):
 
         self.notes = 'AAMAS MASA Implementation'
 
-        self.benchmark_algo = 'MASA-dc' # Algorithm: 'MASA-dc', 'MASA-mlp', 'MASA-lstm', 'TD3-Profit', 'TD3-PR', 'TD3-SR', 'CRP', (Please implement firstly before running 'EG', 'OLMAR', 'PAMR', 'CORN', 'RMR', 'EIIE', 'PPN', 'RAT')
+
+        # Algorithm: 'MASA-dc', 'MASA-mlp', 'MASA-lstm', 'TD3-Profit', 'TD3-PR', 'TD3-SR', 'CRP', (Please implement firstly before running 'EG', 'OLMAR', 'PAMR', 'CORN', 'RMR', 'EIIE', 'PPN', 'RAT')
+        self.benchmark_algo = "TD3-PR" #'MASA-dc' 
         self.market_name = 'DJIA' # Financial Index: 'DJIA', 'SP500', 'CSI300'
         self.topK = 10 # Number of assets in a portfolio (10, 20, 30)
         self.num_epochs = 50 # episode.
@@ -144,8 +146,13 @@ class Config():
             'CSI300': '15:00:00',
         }
         self.invest_env_para = {
-            'max_shares': 100, 'initial_asset': 1000000, 'reward_scaling': self.reward_scaling, 'norm_method': self.norm_method, 
-            'transaction_cost': 0.0003, 'slippage': 0.001, 'seed_num': self.seed_num
+            'max_shares': 100, 
+            'initial_asset': 1000000, 
+            'reward_scaling': self.reward_scaling, 
+            'norm_method': self.norm_method, 
+            'transaction_cost': 0.0003, 
+            'slippage': 0.001, 
+            'seed_num': self.seed_num
         } 
 
         self.only_long_algo_lst = ['CRP', 'EG', 'OLMAR', 'PAMR', 'RMR']
