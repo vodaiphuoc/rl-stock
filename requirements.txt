@@ -7,4 +7,3 @@ cvxopt
 scipy
 cvxpy
 shimmy
-TA-Lib
