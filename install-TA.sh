@@ -4,7 +4,7 @@ TA_INCLUDE_PATH=$PREFIX/include
 TARGET_FOLDER=./ta-lib-0.6.4
 
 wget -q https://github.com/ta-lib/ta-lib/releases/download/v0.6.4/ta-lib-0.6.4-src.tar.gz
-tar zxf ta-lib-0.6.4-src.tar.gz $TARGET_FOLDER
+tar zcxf ta-lib-0.6.4-src.tar.gz $TARGET_FOLDER
 cd $TARGET_FOLDER && ./configure --prefix=$PREFIX
 cd $TARGET_FOLDER && make  && sudo make install
 export TA_LIBRARY_PATH=$TA_LIBRARY_PATH && \
